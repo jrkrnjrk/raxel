@@ -12,6 +12,8 @@ local TextChatService = game:GetService("TextChatService")
 local API_URL = "{{API_URL}}"
 local API_SECRET = "{{API_SECRET}}"
 
+local recent = {}
+
 local function post(body)
 	task.spawn(function()
 		local ok, result = pcall(function()
@@ -34,9 +36,15 @@ local function post(body)
 end
 
 local function logMessage(userId, username, message)
-	if type(message) ~= "string" or message == "" then
+	if type(message) ~= "string" or message == "" or not userId then
 		return
 	end
+	local key = tostring(userId) .. "\0" .. message
+	local now = os.clock()
+	if recent[key] and now - recent[key] < 2 then
+		return
+	end
+	recent[key] = now
 	post({
 		userId = userId,
 		username = username,
@@ -52,18 +60,26 @@ local function hookLegacy(player)
 	end)
 end
 
-if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
-	TextChatService.MessageReceived:Connect(function(textChatMessage)
+local function hookChannel(textChannel)
+	if not textChannel:IsA("TextChannel") then
+		return
+	end
+	textChannel.MessageReceived:Connect(function(textChatMessage)
 		local source = textChatMessage.TextSource
 		if not source then
 			return
 		end
 		local player = Players:GetPlayerByUserId(source.UserId)
-		logMessage(source.UserId, player and player.Name or "Unknown", textChatMessage.Text)
+		logMessage(source.UserId, player and player.Name or source.Name, textChatMessage.Text)
 	end)
-else
-	Players.PlayerAdded:Connect(hookLegacy)
-	for _, player in ipairs(Players:GetPlayers()) do
-		hookLegacy(player)
-	end
 end
+
+Players.PlayerAdded:Connect(hookLegacy)
+for _, player in ipairs(Players:GetPlayers()) do
+	hookLegacy(player)
+end
+
+for _, descendant in ipairs(TextChatService:GetDescendants()) do
+	hookChannel(descendant)
+end
+TextChatService.DescendantAdded:Connect(hookChannel)

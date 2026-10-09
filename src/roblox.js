@@ -88,6 +88,20 @@ async function setRole(userId, roleId) {
   });
 }
 
+async function banFromGroup(userId, reason) {
+  return cookieFetch(`https://groups.roblox.com/v1/groups/${GROUP_ID}/bans/${userId}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(reason ? { reason: String(reason).slice(0, 200) } : {}),
+  });
+}
+
+async function unbanFromGroup(userId) {
+  return cookieFetch(`https://groups.roblox.com/v1/groups/${GROUP_ID}/bans/${userId}`, {
+    method: "DELETE",
+  });
+}
+
 async function authenticatedUser() {
   return cookieFetch("https://users.roblox.com/v1/users/authenticated");
 }
@@ -136,6 +150,8 @@ module.exports = {
   getUser,
   getRoles,
   setRole,
+  banFromGroup,
+  unbanFromGroup,
   authenticatedUser,
   getUserGroupRole,
   assignableRoles,

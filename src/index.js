@@ -3,14 +3,16 @@ const config = require("./config");
 const roblox = require("./roblox");
 const { createApi } = require("./http");
 const { commands, handleButton } = require("./commands");
+const { commands: moderationCommands } = require("./moderation");
 
+const allCommands = [...commands, ...moderationCommands];
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
-const byName = new Map(commands.map((command) => [command.data.name, command]));
+const byName = new Map(allCommands.map((command) => [command.data.name, command]));
 
 client.once("ready", async () => {
   console.log(`Logged in as ${client.user.tag}`);
   const rest = new REST({ version: "10" }).setToken(config.discordToken);
-  const body = commands.map((command) => command.data.toJSON());
+  const body = allCommands.map((command) => command.data.toJSON());
   if (config.guildId) {
     await rest.put(Routes.applicationGuildCommands(client.user.id, config.guildId), { body });
     console.log(`Registered ${body.length} guild commands in ${config.guildId}`);

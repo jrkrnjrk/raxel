@@ -10,7 +10,7 @@ local Players = game:GetService("Players")
 
 local API_URL = "{{API_URL}}"
 local API_SECRET = "{{API_SECRET}}"
-local FLUSH_SECONDS = 60
+local FLUSH_SECONDS = 20
 
 local joinedAt = {}
 
@@ -40,13 +40,11 @@ end
 local function flush(player, resetClock)
 	local start = joinedAt[player.UserId]
 	if not start then
-		return
+		return false
 	end
-	local seconds = os.time() - start
-	if seconds < 1 then
-		return
-	end
+	local seconds = math.max(1, os.time() - start)
 	local sent = post({
+		secret = API_SECRET,
 		updates = {
 			{
 				userId = player.UserId,
@@ -56,13 +54,22 @@ local function flush(player, resetClock)
 			},
 		},
 	})
-	if sent and resetClock then
-		joinedAt[player.UserId] = os.time()
+	if sent then
+		print("[Activity] saved " .. seconds .. "s for " .. player.Name)
+		if resetClock then
+			joinedAt[player.UserId] = os.time()
+		end
 	end
+	return sent
 end
 
 local function track(player)
 	joinedAt[player.UserId] = os.time()
+	task.delay(5, function()
+		if player.Parent then
+			flush(player, true)
+		end
+	end)
 end
 
 Players.PlayerAdded:Connect(track)
@@ -82,4 +89,11 @@ task.spawn(function()
 			flush(player, true)
 		end
 	end
+end)
+
+game:BindToClose(function()
+	for _, player in ipairs(Players:GetPlayers()) do
+		flush(player, false)
+	end
+	task.wait(2)
 end)

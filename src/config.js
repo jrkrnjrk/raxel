@@ -33,6 +33,7 @@ const config = {
   publicUrl: publicUrl(),
   dataDir: resolveDataDir(),
   port: Number(process.env.PORT || 3000),
+  lockdownMinRank: Number(process.env.LOCKDOWN_MIN_RANK || 100),
 };
 
 module.exports = config;

@@ -18,6 +18,20 @@ Discord slash-command bot for Roblox group `186309460`. Rank changes use a Roblo
 | `/highest-activity` | Anyone | Player with the most tracked time |
 | `/chatlogs` | Staff | Latest 100 messages as a text file |
 | `/chatlogs-script` | Staff | Sends the Studio chat log script |
+| `/purge amount` | Staff | Deletes up to 100 recent messages |
+| `/ban user` | Staff | Bans a Discord member |
+| `/kick user` | Staff | Kicks a Discord member |
+| `/warn user` | Staff | Stores a warning |
+| `/infractions user` | Staff | Lists warnings |
+| `/unwarn user id` | Staff | Removes a warning |
+| `/unban userid` | Staff | Unbans a Discord user id |
+| `/mute user minutes` | Staff | Timeouts a member |
+| `/unmute user` | Staff | Clears a timeout |
+| `/softban user` | Staff | Bans and unbans to delete 7 days of messages |
+| `/community-ban username` | Staff | Bans them from the Roblox group |
+| `/community-unban username` | Staff | Removes the group ban |
+| `/lockdown enabled` | Staff | Rank 100+ only can stay in the game |
+| `/lockdown-script` | Staff | Studio script that enforces lockdown |
 
 Staff means Administrator, or a role id listed in `STAFF_ROLE_IDS`.
 
@@ -53,7 +67,7 @@ DATA_DIR=/data
 2. Put both scripts in ServerScriptService.
 3. Game Settings > Security > Allow HTTP Requests.
 4. Allow the Railway domain if the place uses an HTTP allowlist.
-5. Join the game. Activity flushes every 60 seconds and when a player leaves. Chat posts as messages are sent.
+5. Join the game. Activity flushes every 20 seconds and when a player leaves. Chat posts as messages are sent. Lockdown only works after `Lockdown.server.lua` is in the game.
 
 ## Verify
 

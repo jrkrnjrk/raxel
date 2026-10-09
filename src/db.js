@@ -9,6 +9,9 @@ const empty = () => ({
   pending: {},
   activity: {},
   chatlogs: [],
+  warnings: {},
+  warningSeq: 1,
+  lockdown: false,
 });
 
 let store = empty();
@@ -23,6 +26,7 @@ function load() {
   try {
     store = { ...empty(), ...JSON.parse(fs.readFileSync(filePath, "utf8")) };
     if (!Array.isArray(store.chatlogs)) store.chatlogs = [];
+    if (!store.warnings) store.warnings = {};
   } catch (error) {
     console.error("Failed to read store, starting fresh:", error.message);
     store = empty();
@@ -96,6 +100,37 @@ function latestChatlogs(limit = 100) {
   return store.chatlogs.slice(-limit);
 }
 
+function addWarning(guildId, userId, entry) {
+  const key = `${guildId}:${userId}`;
+  const id = store.warningSeq++;
+  const warning = { id, ...entry, createdAt: new Date().toISOString() };
+  store.warnings[key] = store.warnings[key] || [];
+  store.warnings[key].push(warning);
+  return save().then(() => warning);
+}
+
+function getWarnings(guildId, userId) {
+  return store.warnings[`${guildId}:${userId}`] || [];
+}
+
+function removeWarning(guildId, userId, warningId) {
+  const key = `${guildId}:${userId}`;
+  const list = store.warnings[key] || [];
+  const next = list.filter((warning) => warning.id !== Number(warningId));
+  if (next.length === list.length) return null;
+  store.warnings[key] = next;
+  return save().then(() => true);
+}
+
+function getLockdown() {
+  return Boolean(store.lockdown);
+}
+
+function setLockdown(enabled) {
+  store.lockdown = Boolean(enabled);
+  return save();
+}
+
 load();
 
 module.exports = {
@@ -109,4 +144,9 @@ module.exports = {
   topActivity,
   addChatlog,
   latestChatlogs,
+  addWarning,
+  getWarnings,
+  removeWarning,
+  getLockdown,
+  setLockdown,
 };
